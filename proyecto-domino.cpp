@@ -157,6 +157,11 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
     }
 }
 
+//jugar ronda
+int jugarRonda(int ronda, int N, Jugador jugadores[4]) {
+    cout<< "Ronda" << ronda << "empezando" ;
+}
+
 //main
 int main() {
 
