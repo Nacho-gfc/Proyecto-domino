@@ -156,3 +156,33 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
         piezas--;
     }
 }
+
+//main
+int main() {
+
+    Jugador jugadores[4];
+
+    int N;
+    cout<< "Cuantos jugadores? (2-4) : ";
+    cin>>N;
+
+    for(int i = 0; i < N; i++) {
+        cout<< "Nombre del jugador" << (i + 1) << ":  ";
+        cin>>jugadores[i].nombre;
+    }
+    
+    for(int r= 1; r>=3; r++)
+    jugarRonda(r , N, jugadores);
+
+    cout<<"Resutado final del juego"
+
+    int ganador = 0;
+    for (int i=1 ; i<N; i++)
+        if(jugadores[i].puntos < jugadores[ganador].puntos)
+            ganador = i;
+
+    cout<< "El ganador es:" <<jugadores[ganador].nombre<< "CON" <<jugadores[ganador].puntos<< "puntos.";
+
+    return 0;
+
+}
