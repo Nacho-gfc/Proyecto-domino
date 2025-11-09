@@ -77,3 +77,82 @@ pozo* crearPozo(ficha* fichasMezcladas){ // Esta Función se encarga de hacer el
     return nuevoPozo;
 }
 
+
+int generarAleatorio(int max) {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distrib(0, max);
+    return distrib(gen);
+}
+
+void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2)
+{
+    int cont=14, piezas=28;
+    while (cont > 0)
+    {
+        pozo *aux=Pozo;
+        int num= generarAleatorio(piezas), pos=0;
+
+        while (aux!=NULL && pos !=num)
+        {
+            aux=aux->prox;
+        }
+        if (cont > 7)
+            AgregarAMano(player1,aux->fichapozo);
+        else
+            AgregarAMano(player2,aux->fichapozo);
+        
+        cont--;
+        piezas--;
+    }
+}
+
+void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *&player3)
+{
+    int cont=21, piezas=28;
+    while (cont > 0)
+    {
+        pozo *aux=Pozo;
+        int num= generarAleatorio(piezas), pos=0;
+
+        while (aux!=NULL && pos !=num)
+        {
+            aux=aux->prox;
+        }
+        if (cont > 14)
+            AgregarAMano(player1,aux->fichapozo);
+        else if (cont > 7)
+            AgregarAMano(player2,aux->fichapozo);
+        else
+            AgregarAMano(player3, aux->fichapozo);
+        
+        cont--;
+        piezas--;
+    }
+}
+
+void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *&player3, Jugador *&player4)
+{
+    int cont=28, piezas=28;
+    while (cont > 0)
+    {
+        pozo *aux=Pozo;
+        int num= generarAleatorio(piezas), pos=0;
+
+        while (aux!=NULL && pos !=num)
+        {
+            aux=aux->prox;
+        }
+        if (cont > 21)
+            AgregarAMano(player1,aux->fichapozo);
+        else if (cont > 14)
+            AgregarAMano(player2,aux->fichapozo);
+        else if (cont > 7)
+            AgregarAMano(player3,aux->fichapozo);
+        else
+            AgregarAMano(player4, aux->fichapozo);
+        
+        cont--;
+        piezas--;
+    }
+}
