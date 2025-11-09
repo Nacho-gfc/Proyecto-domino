@@ -70,7 +70,7 @@ ficha* llenarFicha(){ // Llenar fichas. solo llenara las fichas del lado derecho
     return fichasMezcladas;
 }
 
-pozo* crearPozo(ficha* fichasMezcladas){ //
+pozo* crearPozo(ficha* fichasMezcladas){ // Esta Función se encarga de hacer el pozo de fichas restantes
     pozo* nuevoPozo = new pozo;
     nuevoPozo->fichapozo = fichasMezcladas;
     nuevoPozo->prox = nullptr;
