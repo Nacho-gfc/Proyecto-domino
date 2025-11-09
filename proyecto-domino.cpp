@@ -214,6 +214,24 @@ int jugarRonda(int ronda, int N, Jugador jugadores[4]) {
         jugador = (jugador + 1) % N;
     }
 
+       cout << "\n--- PUNTAJES DE LA RONDA ---\n";
+    int menor = 999, ganador = 0;
+
+    for (int j = 0; j < N; j++) {
+        int pts = sumaMano(jugadores[j]);
+        jugadores[j].puntosTotales += pts;
+
+        cout << jugadores[j].nombre << ": " << pts << " puntos (acumulado: "
+             << jugadores[j].puntosTotales << ")\n";
+
+        if (pts < menor) {
+            menor = pts;
+            ganador = j;
+        }
+    }
+
+    return ganador;
+
 
 
 }
