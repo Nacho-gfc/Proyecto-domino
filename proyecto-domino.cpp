@@ -53,7 +53,7 @@ void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Función 
         inicio = nuevo;
     } else{
         ficha *auxiliar = inicio;
-        while (auxiliar->prox != NULL){
+        while (auxiliar->prox != nullptr){
         auxiliar = auxiliar->prox;
     }
     auxiliar->prox = nuevo;
@@ -93,7 +93,7 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2)
         pozo *aux=Pozo;
         int num= generarAleatorio(piezas), pos=0;
 
-        while (aux!=NULL && pos !=num)
+        while (aux!=nullptr && pos !=num)
         {
             aux=aux->prox;
         }
@@ -115,7 +115,7 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
         pozo *aux=Pozo;
         int num= generarAleatorio(piezas), pos=0;
 
-        while (aux!=NULL && pos !=num)
+        while (aux!=nullptr && pos !=num)
         {
             aux=aux->prox;
         }
@@ -139,7 +139,7 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
         pozo *aux=Pozo;
         int num= generarAleatorio(piezas), pos=0;
 
-        while (aux!=NULL && pos !=num)
+        while (aux!=nullptr && pos !=num)
         {
             aux=aux->prox;
         }
@@ -157,112 +157,8 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
     }
 }
 
-//jugar ronda
-int jugarRonda(int ronda, int N, Jugador jugadores[4]) {
-    cout<< "Ronda" << ronda << "empezando" ;
 
-    
-    ficha mazo[28];
-    crearmazo(mazo);
-    barajear(mazo);
-
-    Lista pozo;
-    Lista mesa;
-
-    int idx = 0;
-    for(int j = 0; j< N; j++) {
-        for (int k = 0; k < 7; k++) {
-            jugadores[j].mano.agregarAlFinal(mazo[idx]);
-            idx++;
-        }
-    }
-    for ( idx < 28; idx++) {
-        pozo.agregarAlFinal(mazo[idx]);
-    }
-
-     int JugadorActual = 0;
-    for (int j = 0; j < N; j++) {
-        if (tieneDobleSeis(jugadores[j].mano) !=-1) {
-            JugadorActual = j;
-            break;  
-        }
-    }
-
-    ficha inicial = jugadores[JugadorActual].mano.tieneDobleSeis();
-    mesa.agregarAlFinal(inicial);
-
-    cout<< "Empieza" << jugadores[JugadorActual].nombre << "con [" << inicial.izq << "|" << inicial.der << "]";
-
-    nt jugador = (jugadorInicio + 1) % N;
-    int sinJugar = 0;
-
-    while (true) {
-        if (jugadores[jugador].mano.buscar(0)) {
-            break;
-        }
-
-        bool jugó = turnoJugador(jugadores[jugador], N, mesa, pozo);
-
-        if (!jugó) sinJugar++;
-        else sinJugar = 0;
-
-        if (sinJugar == N) {
-            cout << "\nJUEGO TRANCADO.\n";
-            break;
-        }
-
-        jugador = (jugador + 1) % N;
-    }
-
-       cout << "\n--- PUNTAJES DE LA RONDA ---\n";
-    int menor = 999, ganador = 0;
-
-    for (int j = 0; j < N; j++) {
-        int pts = sumaMano(jugadores[j]);
-        jugadores[j].puntosTotales += pts;
-
-        cout << jugadores[j].nombre << ": " << pts << " puntos (acumulado: "
-             << jugadores[j].puntosTotales << ")\n";
-
-        if (pts < menor) {
-            menor = pts;
-            ganador = j;
-        }
-    }
-
-    return ganador;
-
-
-
-}
-
-
-//main
 int main() {
-
-    Jugador jugadores[4];
-
-    int N;
-    cout<< "Cuantos jugadores? (2-4) : ";
-    cin>>N;
-
-    for(int i = 0; i < N; i++) {
-        cout<< "Nombre del jugador" << (i + 1) << ":  ";
-        cin>>jugadores[i].nombre;
-    }
-    
-    for(int r= 1; r>=3; r++)
-    jugarRonda(r , N, jugadores);
-
-    cout<<"Resutado final del juego"
-
-    int ganador = 0;
-    for (int i=1 ; i<N; i++)
-        if(jugadores[i].puntos < jugadores[ganador].puntos)
-            ganador = i;
-
-    cout<< "El ganador es:" <<jugadores[ganador].nombre<< "CON" <<jugadores[ganador].puntos<< "puntos.";
-
+    cout << "Proyecto Domino - En desarrollo" << endl;
     return 0;
-
 }
