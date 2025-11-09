@@ -180,6 +180,40 @@ int jugarRonda(int ronda, int N, Jugador jugadores[4]) {
         pozo.agregarAlFinal(mazo[idx]);
     }
 
+     int JugadorActual = 0;
+    for (int j = 0; j < N; j++) {
+        if (tieneDobleSeis(jugadores[j].mano) !=-1) {
+            JugadorActual = j;
+            break;  
+        }
+    }
+
+    ficha inicial = jugadores[JugadorActual].mano.tieneDobleSeis();
+    mesa.agregarAlFinal(inicial);
+
+    cout<< "Empieza" << jugadores[JugadorActual].nombre << "con [" << inicial.izq << "|" << inicial.der << "]";
+
+    nt jugador = (jugadorInicio + 1) % N;
+    int sinJugar = 0;
+
+    while (true) {
+        if (jugadores[jugador].mano.buscar(0)) {
+            break;
+        }
+
+        bool jugó = turnoJugador(jugadores[jugador], N, mesa, pozo);
+
+        if (!jugó) sinJugar++;
+        else sinJugar = 0;
+
+        if (sinJugar == N) {
+            cout << "\nJUEGO TRANCADO.\n";
+            break;
+        }
+
+        jugador = (jugador + 1) % N;
+    }
+
 
 
 }
