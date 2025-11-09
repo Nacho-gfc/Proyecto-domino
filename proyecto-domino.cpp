@@ -160,7 +160,30 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
 //jugar ronda
 int jugarRonda(int ronda, int N, Jugador jugadores[4]) {
     cout<< "Ronda" << ronda << "empezando" ;
+
+    
+    ficha mazo[28];
+    crearmazo(mazo);
+    barajear(mazo);
+
+    Lista pozo;
+    Lista mesa;
+
+    int idx = 0;
+    for(int j = 0; j< N; j++) {
+        for (int k = 0; k < 7; k++) {
+            jugadores[j].mano.agregarAlFinal(mazo[idx]);
+            idx++;
+        }
+    }
+    for ( idx < 28; idx++) {
+        pozo.agregarAlFinal(mazo[idx]);
+    }
+
+
+
 }
+
 
 //main
 int main() {
