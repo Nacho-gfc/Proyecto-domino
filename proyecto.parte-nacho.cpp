@@ -27,7 +27,7 @@ struct mesa{
     int der;
 };
 
-ficha* CrearFicha(int izq, int der){
+ficha* CrearFicha(int izq, int der){ // Esta Función de encarga de crear las fichas, asigna valores de la derecha e izquierda
     ficha* nueva = new ficha;
     nueva->izq=izq;
     nueva->der=der;
@@ -35,7 +35,19 @@ ficha* CrearFicha(int izq, int der){
     return nueva;
 }
 
-void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){
+void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Función tiene como objetivo agregar fichas a la mano del jugador. TIENES QUE LIMITARLA PARA 7 PERSONAS
+    if(jugador->mano == nullptr){
+        jugador->mano = nuevaFicha;
+    } else {
+        ficha* actual = jugador->mano;
+        while(actual->prox != nullptr){
+            actual = actual->prox;
+        }
+        actual->prox = nuevaFicha;
+    }
+}
+
+void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Función tiene como objetivo hacer el guardado de todas las fichas, para no perderlas
     ficha *nuevo = CrearFicha(valorIzq, valorDer);
     if (inicio==nullptr){
         inicio = nuevo;
@@ -48,7 +60,7 @@ void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){
     }
 }
 
-ficha* llenarFicha(){
+ficha* llenarFicha(){ // Llenar fichas. solo llenara las fichas del lado derecho e izquierdo
     ficha* fichasMezcladas = nullptr;
     for(int i=0; i<=6; i++){
         for(int j = i; j <=6;j++){
@@ -58,13 +70,10 @@ ficha* llenarFicha(){
     return fichasMezcladas;
 }
 
-pozo* crearPozo(ficha* fichasMezcladas){
+pozo* crearPozo(ficha* fichasMezcladas){ //
     pozo* nuevoPozo = new pozo;
     nuevoPozo->fichapozo = fichasMezcladas;
     nuevoPozo->prox = nullptr;
     return nuevoPozo;
 }
 
-Jugador* RepartirFichas(pozo *&pozo, int n, ficha* mano){
-    
-}
