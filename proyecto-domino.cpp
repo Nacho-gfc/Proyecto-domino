@@ -183,6 +183,44 @@ bool puedeJugar(ficha* f, mesa* Mesa){
             f->izq == Mesa->der || f->der == Mesa->der);
 }
 
+// Funcion para buscar el jugador con el doble mas alto (o la ficha mas alta si no hay dobles)
+int buscarJugadorInicial(Jugador* jugadores[], int numJugadores){
+    int dobleMaximo = -1;
+    int jugadorInicial = 0;
+    bool hayDoble = false;
+    
+    // Primero buscar el doble mas alto
+    for(int i = 0; i < numJugadores; i++){
+        ficha* aux = jugadores[i]->mano;
+        while(aux != nullptr){
+            if(aux->izq == aux->der && aux->izq > dobleMaximo){
+                dobleMaximo = aux->izq;
+                jugadorInicial = i;
+                hayDoble = true;
+            }
+            aux = aux->prox;
+        }
+    }
+    
+    // Si no hay dobles, buscar la ficha mas alta (suma de valores)
+    if(!hayDoble){
+        int sumaMaxima = -1;
+        for(int i = 0; i < numJugadores; i++){
+            ficha* aux = jugadores[i]->mano;
+            while(aux != nullptr){
+                int suma = aux->izq + aux->der;
+                if(suma > sumaMaxima){
+                    sumaMaxima = suma;
+                    jugadorInicial = i;
+                }
+                aux = aux->prox;
+            }
+        }
+    }
+    
+    return jugadorInicial;
+}
+
 bool tieneJugada(Jugador* jugador, mesa* Mesa){
     ficha* aux = jugador->mano;
     while(aux != nullptr){
@@ -327,17 +365,23 @@ bool jugarTurno(Jugador* jugador, mesa* &Mesa, pozo* &Pozo, int numJugadores){
     mostrarMano(jugador);
     
     if(!tieneJugada(jugador, Mesa)){
-        if(numJugadores == 4 || contarFichasPozo(Pozo) == 0){
+        // Con 4 jugadores: solo pasa turno (no toma del pozo)
+        // Con 2-3 jugadores: toma del pozo hasta poder jugar o se acabe
+        if(numJugadores < 4 && contarFichasPozo(Pozo) > 0){
+            cout << "No puedes jugar ninguna ficha! Debes tomar del pozo..." << endl;
+            while(contarFichasPozo(Pozo) > 0 && !tieneJugada(jugador, Mesa)){
+                tomarDelPozo(jugador, Pozo);
+            }
+            cout << "\nMano actualizada:" << endl;
+            mostrarMano(jugador);
+            
+            if(!tieneJugada(jugador, Mesa)){
+                cout << "Aun asi no puedes jugar. Pasas tu turno." << endl;
+                return false;
+            }
+        } else {
+            // 4 jugadores o pozo vacio: pasa turno
             cout << "No puedes jugar. Pasas tu turno." << endl;
-            return false;
-        }
-        
-        cout << "No tienes jugada. Tomando del pozo..." << endl;
-        tomarYMostrar(jugador, Pozo);
-        mostrarMano(jugador);
-        
-        if(!tieneJugada(jugador, Mesa)){
-            cout << "Aun no tienes jugada. Pasas tu turno." << endl;
             return false;
         }
     }
@@ -500,6 +544,8 @@ int main() {
         jugadores[i]->prox = nullptr;
     }
     
+    Jugador* ganadorAnterior = nullptr;
+    
     for(int ronda = 1; ronda <= 3; ronda++){
         cout << "\n\n########################################" << endl;
         cout << "          RONDA " << ronda << endl;
@@ -507,7 +553,7 @@ int main() {
         
         ficha* fichasMezcladas = llenarFicha();
         
-        // Convertir lista de fichas a lista de pozos
+        // Convertir lista de fichas a lista de pozos (cada ficha en un nodo pozo)
         pozo* Pozo = nullptr;
         pozo* ultimoPozo = nullptr;
         ficha* auxFicha = fichasMezcladas;
@@ -535,24 +581,27 @@ int main() {
         Mesa->izq = -1;
         Mesa->der = -1;
         
-        int jugadorActual = 0;
-        for(int i = 0; i < numJugadores; i++){
-            ficha* aux = jugadores[i]->mano;
-            while(aux != nullptr){
-                if(aux->izq == 6 && aux->der == 6){
+        // Determinar quien comienza la ronda
+        int jugadorActual;
+        if(ganadorAnterior == nullptr){
+            // Primera ronda: buscar el doble mas alto
+            jugadorActual = buscarJugadorInicial(jugadores, numJugadores);
+            cout << "\nEl jugador " << jugadores[jugadorActual]->id << " tiene el doble mas alto y comienza!" << endl;
+        } else {
+            // Rondas siguientes: comienza el ganador de la ronda anterior
+            for(int i = 0; i < numJugadores; i++){
+                if(jugadores[i] == ganadorAnterior){
                     jugadorActual = i;
                     break;
                 }
-                aux = aux->prox;
             }
+            cout << "\nEl jugador " << jugadores[jugadorActual]->id << " gano la ronda anterior y comienza!" << endl;
         }
         
         bool rondaTerminada = false;
-        int turnos = 0;
-        int maxTurnos = 100;
         int turnosSinJugar = 0;
         
-        while(!rondaTerminada && turnos < maxTurnos){
+        while(!rondaTerminada){
             bool jugo = jugarTurno(jugadores[jugadorActual], Mesa, Pozo, numJugadores);
             
             if(!jugo){
@@ -561,15 +610,17 @@ int main() {
                 turnosSinJugar = 0;
             }
             
+            // Verificar si el jugador gano (se quedo sin fichas)
             if(contarFichas(jugadores[jugadorActual]->mano) == 0){
                 cout << "\n¡¡¡ Jugador " << jugadores[jugadorActual]->id << " gano la ronda !!!" << endl;
+                ganadorAnterior = jugadores[jugadorActual];
                 rondaTerminada = true;
             }
             
+            // Verificar si hay tranca (nadie puede jugar)
             if(turnosSinJugar >= numJugadores){
                 cout << "\n¡¡¡ TRANCA !!! Nadie puede jugar" << endl;
                 
-                // Determinar ganador por menos puntos
                 int menosPuntos = 999999;
                 int ganadorTranca = 0;
                 for(int i = 0; i < numJugadores; i++){
@@ -581,6 +632,7 @@ int main() {
                     }
                 }
                 cout << "El jugador " << jugadores[ganadorTranca]->id << " tenia menos puntos" << endl;
+                ganadorAnterior = jugadores[ganadorTranca];
                 rondaTerminada = true;
             }
             
@@ -589,7 +641,6 @@ int main() {
             }
             
             jugadorActual = (jugadorActual + 1) % numJugadores;
-            turnos++;
         }
         
         cout << "\n--- Resumen de la Ronda " << ronda << " ---" << endl;
