@@ -81,7 +81,7 @@ pozo* crearPozo(ficha* fichasMezcladas){ // Esta Funcion se encarga de hacer el 
 int generarAleatorio(int max) {
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> distrib(0, max);
+    uniform_int_distribution<> distrib(0, max - 1);
     return distrib(gen);
 }
 int contarFichas(ficha* mano){
@@ -158,7 +158,6 @@ ficha* eliminarFichaDeMano(Jugador* jugador, int posicion){
 }
 void repartirFichas(pozo *&Pozo, Jugador* jugadores[], int numJugadores) {
     int fichasPorJugador = 7;
-    int totalFichas = fichasPorJugador * numJugadores;
     int piezasDisponibles = contarFichasPozo(Pozo);
     
     for(int i = 0; i < numJugadores; i++){
@@ -191,11 +190,31 @@ bool tieneJugada(Jugador* jugador, mesa* Mesa){
     return false;
 }
 
+// Funciones de visualizacion
+void mostrarFicha(ficha* f){
+    if(f == nullptr){
+        cout << "[vacio]";
+        return;
+    }
+    cout << "[" << f->izq << "|" << f->der << "]";
+}
+
 void tomarDelPozo(Jugador* jugador, pozo* &Pozo){
-    if(Pozo == nullptr) return;
-    ficha* fichaObtenida = eliminarFichaPozo(Pozo, 0);
+    int cantidadPozo = contarFichasPozo(Pozo);
+    if(cantidadPozo == 0){
+        cout << "No hay fichas en el pozo!" << endl;
+        return;
+    }
+    
+    int posAleatoria = generarAleatorio(cantidadPozo);
+    ficha* fichaObtenida = eliminarFichaPozo(Pozo, posAleatoria);
+    
     if(fichaObtenida != nullptr){
+        fichaObtenida->prox = nullptr;
         AgregarAMano(jugador, fichaObtenida);
+        cout << "El jugador " << jugador->id << " tomo una ficha del pozo: ";
+        mostrarFicha(fichaObtenida);
+        cout << endl;
     }
 }
 
@@ -207,15 +226,6 @@ int sumaPuntos(ficha* mano){
         aux = aux->prox;
     }
     return suma;
-}
-
-// Funciones de visualizacion
-void mostrarFicha(ficha* f){
-    if(f == nullptr){
-        cout << "[vacio]";
-        return;
-    }
-    cout << "[" << f->izq << "|" << f->der << "]";
 }
 
 void mostrarMano(Jugador* jugador){
@@ -232,15 +242,21 @@ void mostrarMano(Jugador* jugador){
 }
 
 void mostrarMesa(mesa* Mesa){
-    cout << "\n=========================";
-    cout << "\nMESA: ";
-    ficha* aux = Mesa->inicio;
-    while(aux != nullptr){
-        mostrarFicha(aux);
-        cout << " ";
-        aux = aux->prox;
+    cout << "\n========== MESA ==========" << endl;
+    if(Mesa->inicio == nullptr){
+        cout << "La mesa esta vacia" << endl;
+    } else {
+        cout << "Extremo izquierdo: " << Mesa->izq << " | Extremo derecho: " << Mesa->der << endl;
+        cout << "Fichas en mesa: ";
+        ficha* aux = Mesa->inicio;
+        while(aux != nullptr){
+            mostrarFicha(aux);
+            cout << " ";
+            aux = aux->prox;
+        }
+        cout << endl;
     }
-    cout << "\n=========================\n" << endl;
+    cout << "=========================\n" << endl;
 }
 
 void colocarFicha(ficha* fichaJugada, mesa* &Mesa, char lado){
@@ -249,6 +265,7 @@ void colocarFicha(ficha* fichaJugada, mesa* &Mesa, char lado){
         Mesa->fin = fichaJugada;
         Mesa->izq = fichaJugada->izq;
         Mesa->der = fichaJugada->der;
+        fichaJugada->prox = nullptr;
         return;
     }
     
@@ -270,6 +287,7 @@ void colocarFicha(ficha* fichaJugada, mesa* &Mesa, char lado){
             Mesa->fin->prox = fichaJugada;
             Mesa->fin = fichaJugada;
             Mesa->der = fichaJugada->der;
+            fichaJugada->prox = nullptr;
         } else if(fichaJugada->der == Mesa->der){
             int temp = fichaJugada->izq;
             fichaJugada->izq = fichaJugada->der;
@@ -277,6 +295,7 @@ void colocarFicha(ficha* fichaJugada, mesa* &Mesa, char lado){
             Mesa->fin->prox = fichaJugada;
             Mesa->fin = fichaJugada;
             Mesa->der = fichaJugada->der;
+            fichaJugada->prox = nullptr;
         }
     }
 }
@@ -390,8 +409,152 @@ void reiniciarManos(Jugador* jugadores[], int numJugadores){
         jugadores[i]->mano = nullptr;
     }
 }
-
 int main() {
-    cout << "Proyecto Domino - En desarrollo" << endl;
+    cout << "======================================" << endl;
+    cout << "   BIENVENIDO AL JUEGO DE DOMINO" << endl;
+    cout << "======================================" << endl;
+    
+    int numJugadores;
+    cout << "\nCuantos jugadores van a jugar? (2-4): ";
+    cin >> numJugadores;
+    
+    while(numJugadores < 2 || numJugadores > 4){
+        cout << "Numero invalido. Debe ser entre 2 y 4: ";
+        cin >> numJugadores;
+    }
+    
+    Jugador* jugadores[4];
+    for(int i = 0; i < numJugadores; i++){
+        jugadores[i] = new Jugador;
+        jugadores[i]->id = i + 1;
+        jugadores[i]->mano = nullptr;
+        jugadores[i]->puntos = 0;
+        jugadores[i]->prox = nullptr;
+    }
+    
+    for(int ronda = 1; ronda <= 3; ronda++){
+        cout << "\n\n########################################" << endl;
+        cout << "          RONDA " << ronda << endl;
+        cout << "########################################" << endl;
+        
+        ficha* fichasMezcladas = llenarFicha();
+        
+        // Convertir lista de fichas a lista de pozos
+        pozo* Pozo = nullptr;
+        pozo* ultimoPozo = nullptr;
+        ficha* auxFicha = fichasMezcladas;
+        while(auxFicha != nullptr){
+            pozo* nuevoNodo = new pozo;
+            nuevoNodo->fichapozo = auxFicha;
+            nuevoNodo->prox = nullptr;
+            
+            if(Pozo == nullptr){
+                Pozo = nuevoNodo;
+                ultimoPozo = nuevoNodo;
+            } else {
+                ultimoPozo->prox = nuevoNodo;
+                ultimoPozo = nuevoNodo;
+            }
+            
+            auxFicha = auxFicha->prox;
+        }
+        
+        repartirFichas(Pozo, jugadores, numJugadores);
+        
+        mesa* Mesa = new mesa;
+        Mesa->inicio = nullptr;
+        Mesa->fin = nullptr;
+        Mesa->izq = -1;
+        Mesa->der = -1;
+        
+        int jugadorActual = 0;
+        for(int i = 0; i < numJugadores; i++){
+            ficha* aux = jugadores[i]->mano;
+            while(aux != nullptr){
+                if(aux->izq == 6 && aux->der == 6){
+                    jugadorActual = i;
+                    break;
+                }
+                aux = aux->prox;
+            }
+        }
+        
+        bool rondaTerminada = false;
+        int turnos = 0;
+        int maxTurnos = 100;
+        int turnosSinJugar = 0;
+        
+        while(!rondaTerminada && turnos < maxTurnos){
+            bool jugo = jugarTurno(jugadores[jugadorActual], Mesa, Pozo, numJugadores);
+            
+            if(!jugo){
+                turnosSinJugar++;
+            } else {
+                turnosSinJugar = 0;
+            }
+            
+            if(contarFichas(jugadores[jugadorActual]->mano) == 0){
+                cout << "\n¡¡¡ Jugador " << jugadores[jugadorActual]->id << " gano la ronda !!!" << endl;
+                rondaTerminada = true;
+            }
+            
+            if(turnosSinJugar >= numJugadores){
+                cout << "\n¡¡¡ TRANCA !!! Nadie puede jugar" << endl;
+                
+                // Determinar ganador por menos puntos
+                int menosPuntos = 999999;
+                int ganadorTranca = 0;
+                for(int i = 0; i < numJugadores; i++){
+                    int puntosActuales = sumaPuntos(jugadores[i]->mano);
+                    cout << "Jugador " << jugadores[i]->id << " tiene " << puntosActuales << " puntos en su mano" << endl;
+                    if(puntosActuales < menosPuntos){
+                        menosPuntos = puntosActuales;
+                        ganadorTranca = i;
+                    }
+                }
+                cout << "El jugador " << jugadores[ganadorTranca]->id << " tenia menos puntos" << endl;
+                rondaTerminada = true;
+            }
+            
+            if(rondaTerminada){
+                break;
+            }
+            
+            jugadorActual = (jugadorActual + 1) % numJugadores;
+            turnos++;
+        }
+        
+        cout << "\n--- Resumen de la Ronda " << ronda << " ---" << endl;
+        for(int i = 0; i < numJugadores; i++){
+            int puntosRonda = sumaPuntos(jugadores[i]->mano);
+            jugadores[i]->puntos += puntosRonda;
+            cout << "Jugador " << jugadores[i]->id << ": " << puntosRonda 
+                 << " puntos en esta ronda (Total: " << jugadores[i]->puntos << ")" << endl;
+        }
+        
+        limpiarMesa(Mesa);
+        delete Mesa;
+        limpiarPozo(Pozo);
+        reiniciarManos(jugadores, numJugadores);
+    }
+    
+    cout << "\n\n======================================" << endl;
+    cout << "       RESULTADOS FINALES" << endl;
+    cout << "======================================" << endl;
+    
+    int ganador = 0;
+    for(int i = 1; i < numJugadores; i++){
+        if(jugadores[i]->puntos < jugadores[ganador]->puntos){
+            ganador = i;
+        }
+    }
+    
+    cout << "\n¡¡¡ EL GANADOR ES EL JUGADOR " << jugadores[ganador]->id << " !!!" << endl;
+    cout << "Con " << jugadores[ganador]->puntos << " puntos totales" << endl;
+    
+    for(int i = 0; i < numJugadores; i++){
+        delete jugadores[i];
+    }
+    
     return 0;
 }
