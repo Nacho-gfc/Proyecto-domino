@@ -11,7 +11,7 @@ struct ficha{
 struct Jugador {
     int id;
     ficha* mano;
-    int puntos;
+    int puntos;  
     Jugador* prox;
 };
 
@@ -27,7 +27,7 @@ struct mesa{
     int der;
 };
 
-ficha* CrearFicha(int izq, int der){ // Esta Funci├│n de encarga de crear las fichas, asigna valores de la derecha e izquierda
+ficha* CrearFicha(int izq, int der){ // Esta Funcion de encarga de crear las fichas, asigna valores de la derecha e izquierda
     ficha* nueva = new ficha;
     nueva->izq=izq;
     nueva->der=der;
@@ -35,7 +35,7 @@ ficha* CrearFicha(int izq, int der){ // Esta Funci├│n de encarga de crear la
     return nueva;
 }
 
-void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Funci├│n tiene como objetivo agregar fichas a la mano del jugador. TIENES QUE LIMITARLA PARA 7 PERSONAS
+void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Funcion tiene como objetivo agregar fichas a la mano del jugador. TIENES QUE LIMITARLA PARA 7 PERSONAS
     if(jugador->mano == nullptr){
         jugador->mano = nuevaFicha;
     } else {
@@ -47,7 +47,7 @@ void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Funci├│n tie
     }
 }
 
-void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Funci├│n tiene como objetivo hacer el guardado de todas las fichas, para no perderlas
+void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Funcion tiene como objetivo hacer el guardado de todas las fichas, para no perderlas
     ficha *nuevo = CrearFicha(valorIzq, valorDer);
     if (inicio==nullptr){
         inicio = nuevo;
@@ -70,7 +70,7 @@ ficha* llenarFicha(){ // Llenar fichas. solo llenara las fichas del lado derecho
     return fichasMezcladas;
 }
 
-pozo* crearPozo(ficha* fichasMezcladas){ // Esta Funci├│n se encarga de hacer el pozo de fichas restantes
+pozo* crearPozo(ficha* fichasMezcladas){ // Esta Funcion se encarga de hacer el pozo de fichas restantes
     pozo* nuevoPozo = new pozo;
     nuevoPozo->fichapozo = fichasMezcladas;
     nuevoPozo->prox = nullptr;
@@ -209,10 +209,10 @@ int sumaPuntos(ficha* mano){
     return suma;
 }
 
-// Funciones de visualizaci├│n
+// Funciones de visualizacion
 void mostrarFicha(ficha* f){
     if(f == nullptr){
-        cout << "[vac├¡o]";
+        cout << "[vacio]";
         return;
     }
     cout << "[" << f->izq << "|" << f->der << "]";
@@ -295,6 +295,99 @@ void tomarYMostrar(Jugador* jugador, pozo* &Pozo){
             mostrarFicha(fichaObtenida);
             cout << endl;
         }
+    }
+}
+
+bool jugarTurno(Jugador* jugador, mesa* &Mesa, pozo* &Pozo, int numJugadores){
+    cout << "\n--- Turno del Jugador " << jugador->id << " ---" << endl;
+    mostrarMesa(Mesa);
+    mostrarMano(jugador);
+    
+    if(!tieneJugada(jugador, Mesa)){
+        if(numJugadores == 4 || contarFichasPozo(Pozo) == 0){
+            cout << "No puedes jugar. Pasas tu turno." << endl;
+            return false;
+        }
+        
+        cout << "No tienes jugada. Tomando del pozo..." << endl;
+        tomarYMostrar(jugador, Pozo);
+        mostrarMano(jugador);
+        
+        if(!tieneJugada(jugador, Mesa)){
+            cout << "Aun no tienes jugada. Pasas tu turno." << endl;
+            return false;
+        }
+    }
+    
+    cout << "\nFichas que puedes jugar: ";
+    ficha* aux = jugador->mano;
+    int pos = 1;
+    while(aux != nullptr){
+        if(puedeJugar(aux, Mesa)){
+            cout << pos << " ";
+        }
+        aux = aux->prox;
+        pos++;
+    }
+    cout << endl;
+    
+    int fichaElegida;
+    cout << "Selecciona la ficha que quieres jugar (numero): ";
+    cin >> fichaElegida;
+    
+    ficha* fichaJugada = eliminarFichaDeMano(jugador, fichaElegida);
+    if(fichaJugada == nullptr){
+        cout << "Ficha invalida." << endl;
+        return false;
+    }
+    
+    char lado = 'd';
+    if(Mesa->inicio != nullptr){
+        cout << "En que lado? (i=izquierda, d=derecha): ";
+        cin >> lado;
+    }
+    
+    colocarFicha(fichaJugada, Mesa, lado);
+    
+    cout << "Jugaste: ";
+    mostrarFicha(fichaJugada);
+    cout << endl;
+    
+    return true;
+}
+
+void limpiarFichas(ficha* &mano){
+    ficha* actual = mano;
+    while(actual != nullptr){
+        ficha* siguiente = actual->prox;
+        delete actual;
+        actual = siguiente;
+    }
+    mano = nullptr;
+}
+
+void limpiarPozo(pozo* &Pozo){
+    pozo* actual = Pozo;
+    while(actual != nullptr){
+        pozo* siguiente = actual->prox;
+        delete actual;
+        actual = siguiente;
+    }
+    Pozo = nullptr;
+}
+
+void limpiarMesa(mesa* &Mesa){
+    if(Mesa != nullptr){
+        limpiarFichas(Mesa->inicio);
+        Mesa->inicio = nullptr;
+        Mesa->fin = nullptr;
+    }
+}
+
+void reiniciarManos(Jugador* jugadores[], int numJugadores){
+    for(int i = 0; i < numJugadores; i++){
+        limpiarFichas(jugadores[i]->mano);
+        jugadores[i]->mano = nullptr;
     }
 }
 
