@@ -27,7 +27,7 @@ struct mesa{
     int der;
 };
 
-ficha* CrearFicha(int izq, int der){ // Esta Función de encarga de crear las fichas, asigna valores de la derecha e izquierda
+ficha* CrearFicha(int izq, int der){ // Esta Funci├│n de encarga de crear las fichas, asigna valores de la derecha e izquierda
     ficha* nueva = new ficha;
     nueva->izq=izq;
     nueva->der=der;
@@ -35,7 +35,7 @@ ficha* CrearFicha(int izq, int der){ // Esta Función de encarga de crear las fi
     return nueva;
 }
 
-void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Función tiene como objetivo agregar fichas a la mano del jugador. TIENES QUE LIMITARLA PARA 7 PERSONAS
+void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Funci├│n tiene como objetivo agregar fichas a la mano del jugador. TIENES QUE LIMITARLA PARA 7 PERSONAS
     if(jugador->mano == nullptr){
         jugador->mano = nuevaFicha;
     } else {
@@ -47,7 +47,7 @@ void AgregarAMano(Jugador* jugador, ficha* nuevaFicha){ // Esta Función tiene c
     }
 }
 
-void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Función tiene como objetivo hacer el guardado de todas las fichas, para no perderlas
+void ListasFichas(ficha *&inicio, int valorIzq, int valorDer){ // Esta Funci├│n tiene como objetivo hacer el guardado de todas las fichas, para no perderlas
     ficha *nuevo = CrearFicha(valorIzq, valorDer);
     if (inicio==nullptr){
         inicio = nuevo;
@@ -70,7 +70,7 @@ ficha* llenarFicha(){ // Llenar fichas. solo llenara las fichas del lado derecho
     return fichasMezcladas;
 }
 
-pozo* crearPozo(ficha* fichasMezcladas){ // Esta Función se encarga de hacer el pozo de fichas restantes
+pozo* crearPozo(ficha* fichasMezcladas){ // Esta Funci├│n se encarga de hacer el pozo de fichas restantes
     pozo* nuevoPozo = new pozo;
     nuevoPozo->fichapozo = fichasMezcladas;
     nuevoPozo->prox = nullptr;
@@ -156,82 +156,63 @@ ficha* eliminarFichaDeMano(Jugador* jugador, int posicion){
     aux->prox = nullptr;
     return aux;
 }
-void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2)
-{
-    int cont=14, piezas=28;
-    while (cont > 0)
-    {
-        pozo *aux=Pozo;
-        int num= generarAleatorio(piezas), pos=0;
-
-        while (aux!=nullptr && pos !=num)
-        {
-            aux=aux->prox;
+void repartirFichas(pozo *&Pozo, Jugador* jugadores[], int numJugadores) {
+    int fichasPorJugador = 7;
+    int totalFichas = fichasPorJugador * numJugadores;
+    int piezasDisponibles = contarFichasPozo(Pozo);
+    
+    for(int i = 0; i < numJugadores; i++){
+        for(int j = 0; j < fichasPorJugador; j++){
+            if(piezasDisponibles > 0){
+                int posAleatoria = generarAleatorio(piezasDisponibles - 1);
+                ficha* fichaObtenida = eliminarFichaPozo(Pozo, posAleatoria);
+                if(fichaObtenida != nullptr){
+                    AgregarAMano(jugadores[i], fichaObtenida);
+                    piezasDisponibles--;
+                }
+            }
         }
-        if (cont > 7)
-            AgregarAMano(player1,aux->fichapozo);
-        else
-            AgregarAMano(player2,aux->fichapozo);
-        
-        cont--;
-        piezas--;
     }
 }
 
-void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *&player3)
-{
-    int cont=21, piezas=28;
-    while (cont > 0)
-    {
-        pozo *aux=Pozo;
-        int num= generarAleatorio(piezas), pos=0;
+bool puedeJugar(ficha* f, mesa* Mesa){
+    if(f == nullptr) return false;
+    if(Mesa->inicio == nullptr) return true;
+    return (f->izq == Mesa->izq || f->der == Mesa->izq || 
+            f->izq == Mesa->der || f->der == Mesa->der);
+}
 
-        while (aux!=nullptr && pos !=num)
-        {
-            aux=aux->prox;
-        }
-        if (cont > 14)
-            AgregarAMano(player1,aux->fichapozo);
-        else if (cont > 7)
-            AgregarAMano(player2,aux->fichapozo);
-        else
-            AgregarAMano(player3, aux->fichapozo);
-        
-        cont--;
-        piezas--;
+bool tieneJugada(Jugador* jugador, mesa* Mesa){
+    ficha* aux = jugador->mano;
+    while(aux != nullptr){
+        if(puedeJugar(aux, Mesa)) return true;
+        aux = aux->prox;
+    }
+    return false;
+}
+
+void tomarDelPozo(Jugador* jugador, pozo* &Pozo){
+    if(Pozo == nullptr) return;
+    ficha* fichaObtenida = eliminarFichaPozo(Pozo, 0);
+    if(fichaObtenida != nullptr){
+        AgregarAMano(jugador, fichaObtenida);
     }
 }
 
-void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *&player3, Jugador *&player4)
-{
-    int cont=28, piezas=28;
-    while (cont > 0)
-    {
-        pozo *aux=Pozo;
-        int num= generarAleatorio(piezas), pos=0;
-
-        while (aux!=nullptr && pos !=num)
-        {
-            aux=aux->prox;
-        }
-        if (cont > 21)
-            AgregarAMano(player1,aux->fichapozo);
-        else if (cont > 14)
-            AgregarAMano(player2,aux->fichapozo);
-        else if (cont > 7)
-            AgregarAMano(player3,aux->fichapozo);
-        else
-            AgregarAMano(player4, aux->fichapozo);
-        
-        cont--;
-        piezas--;
+int sumaPuntos(ficha* mano){
+    int suma = 0;
+    ficha* aux = mano;
+    while(aux != nullptr){
+        suma += aux->izq + aux->der;
+        aux = aux->prox;
     }
+    return suma;
 }
 
-// Funciones de visualización
+// Funciones de visualizaci├│n
 void mostrarFicha(ficha* f){
     if(f == nullptr){
-        cout << "[vacío]";
+        cout << "[vac├¡o]";
         return;
     }
     cout << "[" << f->izq << "|" << f->der << "]";
