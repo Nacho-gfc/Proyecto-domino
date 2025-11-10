@@ -84,7 +84,25 @@ int generarAleatorio(int max) {
     uniform_int_distribution<> distrib(0, max);
     return distrib(gen);
 }
+int contarFichas(ficha* mano){
+    int cont = 0;
+    ficha* aux = mano;
+    while(aux != nullptr){
+        cont++;
+        aux = aux->prox;
+    }
+    return cont;
+}
 
+int contarFichasPozo(pozo* p){
+    int cont = 0;
+    pozo* aux = p;
+    while(aux != nullptr){
+        cont++;
+        aux = aux->prox;
+    }
+    return cont;
+}
 void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2)
 {
     int cont=14, piezas=28;
