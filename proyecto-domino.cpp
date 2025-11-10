@@ -158,18 +158,20 @@ ficha* eliminarFichaDeMano(Jugador* jugador, int posicion){
 }
 void repartirFichas(pozo *&Pozo, Jugador* jugadores[], int numJugadores) {
     int fichasPorJugador = 7;
-    int piezasDisponibles = contarFichasPozo(Pozo);
+    int totalFichas = fichasPorJugador * numJugadores;
     
-    for(int i = 0; i < numJugadores; i++){
-        for(int j = 0; j < fichasPorJugador; j++){
-            if(piezasDisponibles > 0){
-                int posAleatoria = generarAleatorio(piezasDisponibles - 1);
-                ficha* fichaObtenida = eliminarFichaPozo(Pozo, posAleatoria);
-                if(fichaObtenida != nullptr){
-                    AgregarAMano(jugadores[i], fichaObtenida);
-                    piezasDisponibles--;
-                }
-            }
+    for(int i = 0; i < totalFichas; i++){
+        int cantidadPozo = contarFichasPozo(Pozo);
+        if(cantidadPozo == 0) break;
+        
+        int posAleatoria = generarAleatorio(cantidadPozo);
+        ficha* fichaObtenida = eliminarFichaPozo(Pozo, posAleatoria);
+        
+        if(fichaObtenida != nullptr){
+            fichaObtenida->prox = nullptr;
+            // Determinar a que jugador le toca
+            int indiceJugador = i / fichasPorJugador;
+            AgregarAMano(jugadores[indiceJugador], fichaObtenida);
         }
     }
 }
@@ -218,9 +220,9 @@ void tomarDelPozo(Jugador* jugador, pozo* &Pozo){
     }
 }
 
-int sumaPuntos(ficha* mano){
+int calcularPuntos(Jugador* jugador){
     int suma = 0;
-    ficha* aux = mano;
+    ficha* aux = jugador->mano;
     while(aux != nullptr){
         suma += aux->izq + aux->der;
         aux = aux->prox;
@@ -229,16 +231,18 @@ int sumaPuntos(ficha* mano){
 }
 
 void mostrarMano(Jugador* jugador){
-    cout << "Jugador " << jugador->id << " - Fichas:" << endl;
+    cout << "Jugador " << jugador->id << " - Puntos acumulados: " << jugador->puntos << endl;
+    cout << "Fichas: ";
     ficha* aux = jugador->mano;
     int pos = 1;
     while(aux != nullptr){
-        cout << "  " << pos << ". ";
+        cout << pos << ". ";
         mostrarFicha(aux);
-        cout << endl;
+        cout << "  ";
         aux = aux->prox;
         pos++;
     }
+    cout << endl;
 }
 
 void mostrarMesa(mesa* Mesa){
@@ -351,25 +355,89 @@ bool jugarTurno(Jugador* jugador, mesa* &Mesa, pozo* &Pozo, int numJugadores){
     cout << endl;
     
     int fichaElegida;
-    cout << "Selecciona la ficha que quieres jugar (numero): ";
-    cin >> fichaElegida;
-    
-    ficha* fichaJugada = eliminarFichaDeMano(jugador, fichaElegida);
-    if(fichaJugada == nullptr){
-        cout << "Ficha invalida." << endl;
-        return false;
+    bool fichaValida = false;
+    while(!fichaValida){
+        cout << "\nSelecciona la ficha que quieres jugar (numero): ";
+        if(!(cin >> fichaElegida)){
+            cin.clear();
+            cin.ignore(10000, '\n');
+            cout << "Entrada invalida. Debes ingresar un numero." << endl;
+            continue;
+        }
+        
+        int totalFichas = contarFichas(jugador->mano);
+        if(fichaElegida < 1 || fichaElegida > totalFichas){
+            cout << "Ficha invalida. Debes elegir un numero entre 1 y " << totalFichas << "." << endl;
+            continue;
+        }
+        
+        aux = jugador->mano;
+        pos = 1;
+        while(aux != nullptr && pos < fichaElegida){
+            aux = aux->prox;
+            pos++;
+        }
+        
+        if(aux == nullptr || !puedeJugar(aux, Mesa)){
+            if(Mesa->inicio != nullptr){
+                cout << "Esa ficha no se puede jugar en la mesa actual. Intenta con otra." << endl;
+                cout << "Necesitas que coincida con " << Mesa->izq << " (izquierdo) o " << Mesa->der << " (derecho)" << endl;
+            } else {
+                cout << "Esa ficha no se puede jugar. Intenta con otra." << endl;
+            }
+            continue;
+        }
+        
+        fichaValida = true;
     }
     
+    // Seleccionar el lado donde jugar (si no es la primera ficha)
     char lado = 'd';
     if(Mesa->inicio != nullptr){
-        cout << "En que lado? (i=izquierda, d=derecha): ";
-        cin >> lado;
+        // Obtener la ficha antes de eliminarla para verificar el lado
+        aux = jugador->mano;
+        pos = 1;
+        while(aux != nullptr && pos < fichaElegida){
+            aux = aux->prox;
+            pos++;
+        }
+        
+        bool ladoValido = false;
+        while(!ladoValido){
+            cout << "Donde quieres jugar? (I)zquierda o (D)erecha: ";
+            cin >> lado;
+            
+            if(lado == 'i' || lado == 'I'){
+                if(aux->izq == Mesa->izq || aux->der == Mesa->izq){
+                    ladoValido = true;
+                } else {
+                    cout << "No puedes jugar esa ficha en el lado izquierdo. Intenta de nuevo." << endl;
+                }
+            } else if(lado == 'd' || lado == 'D'){
+                if(aux->izq == Mesa->der || aux->der == Mesa->der){
+                    ladoValido = true;
+                } else {
+                    cout << "No puedes jugar esa ficha en el lado derecho. Intenta de nuevo." << endl;
+                }
+            } else {
+                cin.ignore(10000, '\n');
+                cout << "Opcion invalida. Usa I para izquierda o D para derecha." << endl;
+            }
+        }
     }
+    
+    ficha* fichaJugada = eliminarFichaDeMano(jugador, fichaElegida);
     
     colocarFicha(fichaJugada, Mesa, lado);
     
-    cout << "Jugaste: ";
+    cout << "Jugador " << jugador->id << " jugo: ";
     mostrarFicha(fichaJugada);
+    cout << " en el lado ";
+    if(lado == 'i' || lado == 'I'){
+        cout << "izquierdo";
+    } else {
+        cout << "derecho";
+    }
     cout << endl;
     
     return true;
@@ -505,7 +573,7 @@ int main() {
                 int menosPuntos = 999999;
                 int ganadorTranca = 0;
                 for(int i = 0; i < numJugadores; i++){
-                    int puntosActuales = sumaPuntos(jugadores[i]->mano);
+                    int puntosActuales = calcularPuntos(jugadores[i]);
                     cout << "Jugador " << jugadores[i]->id << " tiene " << puntosActuales << " puntos en su mano" << endl;
                     if(puntosActuales < menosPuntos){
                         menosPuntos = puntosActuales;
@@ -526,7 +594,7 @@ int main() {
         
         cout << "\n--- Resumen de la Ronda " << ronda << " ---" << endl;
         for(int i = 0; i < numJugadores; i++){
-            int puntosRonda = sumaPuntos(jugadores[i]->mano);
+            int puntosRonda = calcularPuntos(jugadores[i]);
             jugadores[i]->puntos += puntosRonda;
             cout << "Jugador " << jugadores[i]->id << ": " << puntosRonda 
                  << " puntos en esta ronda (Total: " << jugadores[i]->puntos << ")" << endl;
