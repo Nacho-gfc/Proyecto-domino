@@ -228,6 +228,39 @@ void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2, Jugador *
     }
 }
 
+// Funciones de visualización
+void mostrarFicha(ficha* f){
+    if(f == nullptr){
+        cout << "[vacío]";
+        return;
+    }
+    cout << "[" << f->izq << "|" << f->der << "]";
+}
+
+void mostrarMano(Jugador* jugador){
+    cout << "Jugador " << jugador->id << " - Fichas:" << endl;
+    ficha* aux = jugador->mano;
+    int pos = 1;
+    while(aux != nullptr){
+        cout << "  " << pos << ". ";
+        mostrarFicha(aux);
+        cout << endl;
+        aux = aux->prox;
+        pos++;
+    }
+}
+
+void mostrarMesa(mesa* Mesa){
+    cout << "\n=========================";
+    cout << "\nMESA: ";
+    ficha* aux = Mesa->inicio;
+    while(aux != nullptr){
+        mostrarFicha(aux);
+        cout << " ";
+        aux = aux->prox;
+    }
+    cout << "\n=========================\n" << endl;
+}
 
 int main() {
     cout << "Proyecto Domino - En desarrollo" << endl;
