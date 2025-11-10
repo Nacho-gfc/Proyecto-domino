@@ -103,6 +103,59 @@ int contarFichasPozo(pozo* p){
     }
     return cont;
 }
+// Elimina un nodo del pozo y retorna la ficha
+ficha* eliminarFichaPozo(pozo* &Pozo, int posicion){
+    if(Pozo == nullptr) return nullptr;
+    
+    pozo* aux = Pozo;
+    pozo* anterior = nullptr;
+    int pos = 0;
+    
+    while(aux != nullptr && pos < posicion){
+        anterior = aux;
+        aux = aux->prox;
+        pos++;
+    }
+    
+    if(aux == nullptr) return nullptr;
+    
+    ficha* fichaObtenida = aux->fichapozo;
+    
+    if(anterior == nullptr){
+        Pozo = aux->prox;
+    } else {
+        anterior->prox = aux->prox;
+    }
+    
+    delete aux;
+    return fichaObtenida;
+}
+
+// Elimina una ficha de la mano del jugador
+ficha* eliminarFichaDeMano(Jugador* jugador, int posicion){
+    if(jugador->mano == nullptr) return nullptr;
+    
+    ficha* aux = jugador->mano;
+    ficha* anterior = nullptr;
+    int pos = 1;
+    
+    while(aux != nullptr && pos < posicion){
+        anterior = aux;
+        aux = aux->prox;
+        pos++;
+    }
+    
+    if(aux == nullptr) return nullptr;
+    
+    if(anterior == nullptr){
+        jugador->mano = aux->prox;
+    } else {
+        anterior->prox = aux->prox;
+    }
+    
+    aux->prox = nullptr;
+    return aux;
+}
 void repartirFichas(pozo *&Pozo, Jugador *&player1, Jugador *&player2)
 {
     int cont=14, piezas=28;
