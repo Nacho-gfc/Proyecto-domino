@@ -177,7 +177,7 @@ void repartirFichas(pozo *&Pozo, Jugador* jugadores[], int numJugadores) {
 
 bool puedeJugar(ficha* f, mesa* Mesa){
     if(f == nullptr) return false;
-    if(Mesa->inicio == nullptr) return true;
+    if(Mesa == nullptr || Mesa->inicio == nullptr) return true;
     return (f->izq == Mesa->izq || f->der == Mesa->izq || 
             f->izq == Mesa->der || f->der == Mesa->der);
 }
@@ -241,6 +241,61 @@ void mostrarMesa(mesa* Mesa){
         aux = aux->prox;
     }
     cout << "\n=========================\n" << endl;
+}
+
+void colocarFicha(ficha* fichaJugada, mesa* &Mesa, char lado){
+    if(Mesa->inicio == nullptr){
+        Mesa->inicio = fichaJugada;
+        Mesa->fin = fichaJugada;
+        Mesa->izq = fichaJugada->izq;
+        Mesa->der = fichaJugada->der;
+        return;
+    }
+    
+    if(lado == 'i' || lado == 'I'){
+        if(fichaJugada->der == Mesa->izq){
+            fichaJugada->prox = Mesa->inicio;
+            Mesa->inicio = fichaJugada;
+            Mesa->izq = fichaJugada->izq;
+        } else if(fichaJugada->izq == Mesa->izq){
+            int temp = fichaJugada->izq;
+            fichaJugada->izq = fichaJugada->der;
+            fichaJugada->der = temp;
+            fichaJugada->prox = Mesa->inicio;
+            Mesa->inicio = fichaJugada;
+            Mesa->izq = fichaJugada->izq;
+        }
+    } else {
+        if(fichaJugada->izq == Mesa->der){
+            Mesa->fin->prox = fichaJugada;
+            Mesa->fin = fichaJugada;
+            Mesa->der = fichaJugada->der;
+        } else if(fichaJugada->der == Mesa->der){
+            int temp = fichaJugada->izq;
+            fichaJugada->izq = fichaJugada->der;
+            fichaJugada->der = temp;
+            Mesa->fin->prox = fichaJugada;
+            Mesa->fin = fichaJugada;
+            Mesa->der = fichaJugada->der;
+        }
+    }
+}
+
+void tomarYMostrar(Jugador* jugador, pozo* &Pozo){
+    int cantidadAntes = contarFichas(jugador->mano);
+    while(!tieneJugada(jugador, nullptr) && contarFichasPozo(Pozo) > 0){
+        tomarDelPozo(jugador, Pozo);
+        int cantidadDespues = contarFichas(jugador->mano);
+        if(cantidadDespues > cantidadAntes){
+            ficha* fichaObtenida = jugador->mano;
+            while(fichaObtenida->prox != nullptr){
+                fichaObtenida = fichaObtenida->prox;
+            }
+            cout << "Tomaste: ";
+            mostrarFicha(fichaObtenida);
+            cout << endl;
+        }
+    }
 }
 
 int main() {
